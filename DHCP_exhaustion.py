@@ -1,4 +1,7 @@
-from scapy.all import Ether, IP, UDP, BOOTP, DHCP, sendp, mac2str
+from scapy.all import *
+from scapy.layers.dhcp import *
+from scapy.layers.inet import UDP, IP
+from scapy.layers.l2 import Ether
 import random
 import time
 
