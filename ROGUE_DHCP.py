@@ -5,11 +5,11 @@ from scapy.layers.l2 import Ether
 
 # Define the DHCP server configuration
 server_ip = '192.168.1.1'
-subnet_mask = '255.255.255.0'
+subnet_mask = '255.255.255.240'
 lease_time = 600  # Lease time in seconds
-ip_pool = ['192.168.1.10', '192.168.1.20']  # Example IP pool
+ip_pool = ['192.168.1.3', '192.168.1.4', '192.168.1.5', '192.168.1.6', '192.168.1.7', '192.168.1.8']  # Example IP pool
+dns_server = "192.168.1.1"
 offered_ips = {}
-
 def handle_dhcp_packet(packet):
     if packet[DHCP] and packet[DHCP].options[0][1] == 1:  # DHCP Discover
         print("DHCP Discover received")
@@ -23,28 +23,32 @@ def handle_dhcp_packet(packet):
             send_dhcp_ack(packet, offered_ips[client_mac])
 
 def send_dhcp_offer(discover_packet, offer_ip):
-    offer_packet = Ether(src=get_if_hwaddr(conf.iface), dst=discover_packet[Ether].src) / \
-                   IP(src=server_ip, dst='255.255.255.255') / \
+    transaction_id = discover_packet[BOOTP].xid
+    offer_packet = Ether(src="D0:5F:64:35:A7:3C", dst=discover_packet[Ether].src) / \
+                   IP(src=server_ip, dst="255.255.255.255") / \
                    UDP(sport=67, dport=68) / \
-                   BOOTP(op=2, yiaddr=offer_ip, siaddr=server_ip, chaddr=discover_packet[Ether].chaddr) / \
+                   BOOTP(op=2,xid=transaction_id, yiaddr=offer_ip, siaddr=server_ip, chaddr=discover_packet[Ether].chaddr) / \
                    DHCP(options=[('message-type', 'offer'),
                                  ('server_id', server_ip),
                                  ('subnet_mask', subnet_mask),
                                  ('lease_time', lease_time),
+                                 ('router', server_ip),
                                  ('end')])
-    sendp(offer_packet, iface=conf.iface)
+    sendp(offer_packet, iface="Ethernet", verbose=False)
 
 def send_dhcp_ack(request_packet, assigned_ip):
-    ack_packet = Ether(src=get_if_hwaddr(conf.iface), dst=request_packet[Ether].src) / \
+    transaction_id = request_packet[BOOTP].xid
+    ack_packet = Ether(src="D0:5F:64:35:A7:3C", dst=request_packet[Ether].src) / \
                  IP(src=server_ip, dst='255.255.255.255') / \
                  UDP(sport=67, dport=68) / \
-                 BOOTP(op=2, yiaddr=assigned_ip, siaddr=server_ip, chaddr=request_packet[Ether].chaddr) / \
+                 BOOTP(op=2,xid=transaction_id, yiaddr=assigned_ip, siaddr=server_ip, chaddr=request_packet[Ether].chaddr) / \
                  DHCP(options=[('message-type', 'ack'),
                                ('server_id', server_ip),
                                ('subnet_mask', subnet_mask),
                                ('lease_time', lease_time),
+                               ('name_server', dns_server),
                                ('end')])
-    sendp(ack_packet, iface=conf.iface)
+    sendp(ack_packet, iface="Ethernet")
 
 print("DHCP Server is running...")
-sniff(filter="udp and (port 67 or 68)", prn=handle_dhcp_packet, iface=conf.iface)
+sniff(filter="udp and (port 67 or 68) ", prn=handle_dhcp_packet, iface="Ethernet")

