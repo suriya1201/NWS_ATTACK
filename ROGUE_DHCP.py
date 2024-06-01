@@ -7,13 +7,14 @@ from scapy.layers.l2 import Ether
 server_ip = '192.168.1.1'
 subnet_mask = '255.255.255.240'
 lease_time = 600  # Lease time in seconds
-ip_pool = ['192.168.1.3', '192.168.1.4', '192.168.1.5', '192.168.1.6', '192.168.1.7', '192.168.1.8']  # Example IP pool
+ip_pool = ['192.168.1.3', '192.168.1.4','192.168.1.5', '192.168.1.6', '192.168.1.7', '192.168.1.8']  # Example IP pool
 dns_server = "192.168.1.1"
 offered_ips = {}
 def handle_dhcp_packet(packet):
     if packet[DHCP] and packet[DHCP].options[0][1] == 1:  # DHCP Discover
         print("DHCP Discover received")
         offer_ip = ip_pool.pop(0)
+        print(offer_ip)
         offered_ips[packet[Ether].src] = offer_ip
         send_dhcp_offer(packet, offer_ip)
     elif packet[DHCP] and packet[DHCP].options[0][1] == 3:  # DHCP Request
@@ -28,11 +29,10 @@ def send_dhcp_offer(discover_packet, offer_ip):
                    IP(src=server_ip, dst="255.255.255.255") / \
                    UDP(sport=67, dport=68) / \
                    BOOTP(op=2,xid=transaction_id, yiaddr=offer_ip, siaddr=server_ip, chaddr=discover_packet[Ether].chaddr) / \
-                   DHCP(options=[('message-type', 'offer'),
+                    DHCP(options=[('message-type', 'offer'),
                                  ('server_id', server_ip),
                                  ('subnet_mask', subnet_mask),
                                  ('lease_time', lease_time),
-                                 ('router', server_ip),
                                  ('end')])
     sendp(offer_packet, iface="Ethernet", verbose=False)
 
