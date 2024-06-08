@@ -4,11 +4,13 @@ from scapy.layers.inet import UDP, IP
 from scapy.layers.l2 import Ether
 
 # Define the DHCP server configuration
-server_ip = '192.168.1.3'
-subnet_mask = '255.255.255.224'
-lease_time = 600  # Lease time in seconds
-ip_pool = ['192.168.1.2','192.168.1.4','192.168.1.5', '192.168.1.6', '192.168.1.7', '192.168.1.8','192.168.1.9', '192.168.1.20', '192.168.1.21']  # Example IP pool
-dns_server = "192.168.1.3"
+server_ip = '192.168.1.19'
+subnet_mask = '255.255.255.240'
+lease_time = 86400  # Lease time in seconds
+Renewal_Time = 43200
+rebinding_time_value = 75600
+ip_pool = [ '192.168.1.20', '192.168.1.21']  # Example IP pool
+dns_server = "192.168.1.19"
 offered_ips = {}
 def handle_dhcp_packet(packet):
     if packet[DHCP] and packet[DHCP].options[0][1] == 1:  # DHCP Discover
@@ -31,8 +33,12 @@ def send_dhcp_offer(discover_packet, offer_ip):
                    BOOTP(op=2,xid=transaction_id, yiaddr=offer_ip, siaddr=server_ip, chaddr=discover_packet[Ether].chaddr) / \
                     DHCP(options=[('message-type', 'offer'),
                                  ('server_id', server_ip),
-                                 ('subnet_mask', subnet_mask),
                                  ('lease_time', lease_time),
+                                 ('renewal_time', Renewal_Time),
+                                 ('rebinding_time', rebinding_time_value),
+                                 ('subnet_mask', subnet_mask),
+                                 ('router', server_ip),
+                                 ('name_server', dns_server),
                                  ('end')])
     sendp(offer_packet, iface="Ethernet", verbose=False)
 
@@ -44,10 +50,13 @@ def send_dhcp_ack(request_packet, assigned_ip):
                  BOOTP(op=2,xid=transaction_id, yiaddr=assigned_ip, siaddr=server_ip, chaddr=request_packet[Ether].chaddr) / \
                  DHCP(options=[('message-type', 'ack'),
                                ('server_id', server_ip),
-                               ('subnet_mask', subnet_mask),
-                               ('lease_time', lease_time),
-                               ('name_server', dns_server),
-                               ('end')])
+                                 ('lease_time', lease_time),
+                                 ('renewal_time', Renewal_Time),
+                                 ('rebinding_time', rebinding_time_value),
+                                 ('subnet_mask', subnet_mask),
+                                 ('router', server_ip),
+                                 ('name_server', dns_server),
+                                 ('end')])
     sendp(ack_packet, iface="Ethernet")
 
 print("DHCP Server is running...")

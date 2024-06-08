@@ -1,0 +1,52 @@
+import socket
+from dnslib import *
+import os
+import base64
+
+class DNSHandler:
+    def handle(self, data, addr):
+        request = DNSRecord.parse(data)
+        qname = request.q.qname
+        print(f"Received DNS Query: {qname}")
+
+        if str(qname) == "www.example.com.":
+            # Create or open the text file
+            filename = "example.txt"
+            content = "This is the content of the text file."
+            
+            # Write content to the file
+            with open(filename, 'w') as f:
+                f.write(content)
+
+            # Encode the file in base64
+            with open(filename, 'rb') as f:
+                encoded_file = base64.b64encode(f.read()).decode('utf-8')
+
+            # Send the encoded file to the user
+            try:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.connect(addr)
+                sock.sendall(encoded_file.encode('utf-8'))
+                sock.close()
+            except Exception as e:
+                print(f"Error sending file: {e}")
+        else:
+            # Handle other requests normally
+            reply = DNSRecord(DNSHeader(id=request.header.id, qr=1, aa=1, ra=1), q=request.q)
+            return reply.pack()
+
+        return b""  # Return an empty byte string to indicate no DNS response was sent
+
+def main():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.bind(('0.0.0.0', 53))
+    handler = DNSHandler()
+
+    while True:
+        data, addr = sock.recvfrom(1024)
+        response = handler.handle(data, addr)
+        if response:
+            sock.sendto(response, addr)
+
+if __name__ == "__main__":
+    main()

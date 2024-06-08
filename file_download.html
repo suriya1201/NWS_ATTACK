@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto Download</title>
+</head>
+<body>
+<script>
+// Set the file URL
+const fileUrl = 'path_to_your_file.ext'; // Replace 'path_to_your_file.ext' with the actual path to your file
+
+// Function to trigger download
+function triggerDownload() {
+    const anchor = document.createElement('a');
+    anchor.href = fileUrl;
+    anchor.download = fileUrl.split('/').pop(); // Extracts filename from URL
+    anchor.click();
+}
+
+// Trigger download automatically when the page loads
+window.onload = function() {
+    triggerDownload();
+};
+</script>
+</body>
+</html>
