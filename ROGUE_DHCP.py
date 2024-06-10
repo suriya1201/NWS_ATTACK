@@ -4,13 +4,13 @@ from scapy.layers.inet import UDP, IP
 from scapy.layers.l2 import Ether
 
 # Define the DHCP server configuration
-server_ip = '192.168.1.9'
+server_ip = '192.168.1.19'
 subnet_mask = '255.255.255.240'
 lease_time = 86400  # Lease time in seconds
 Renewal_Time = 43200
 rebinding_time_value = 75600
-ip_pool = [ '192.168.1.2','192.168.1.3', '192.168.1.4', '192.168.1.10', '192.168.1.11', '192.168.1.20' ]  # Example IP pool
-dns_server = "192.168.1.9"
+ip_pool = [ '192.168.1.2', '192.168.1.10', '192.168.1.11', '192.168.1.20' ]  # Example IP pool
+dns_server = "192.168.1.19"
 offered_ips = {}
 def handle_dhcp_packet(packet):
     if packet[DHCP] and packet[DHCP].options[0][1] == 1:  # DHCP Discover
