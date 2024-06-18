@@ -9,7 +9,7 @@ subnet_mask = '255.255.255.240'
 lease_time = 86400  # Lease time in seconds
 Renewal_Time = 43200
 rebinding_time_value = 75600
-ip_pool = [ '192.168.1.2', '192.168.1.10', '192.168.1.11', '192.168.1.20' ]  # Example IP pool
+ip_pool = [ '192.168.1.20', '192.168.1.21', '192.168.1.22', '192.168.1.23' ]  # Example IP pool
 dns_server = "192.168.1.19"
 offered_ips = {}
 def handle_dhcp_packet(packet):
