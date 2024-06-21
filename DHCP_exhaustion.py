@@ -10,17 +10,38 @@ class DHCPClient:
         self.mac = self.get_random_mac()
         self.transaction_id = random.randint(1, 900000000)
         self.ip_address = None  # Initialize IP address attribute
+        self.param_req_list = [1, 3, 6, 15, 31, 33, 43, 44, 46, 47, 119, 121, 249, 252]  # Option codes for Subnet Mask, Router, and Domain Name Server
+        self.vendor_class_id = "MSFT 5.0"  # vendor class ID
+        hardware_type = '01'
+        self.client_id = hardware_type + (self.mac).replace(':', '')
 
     def get_random_mac(self):
-        return "02:00:00:%02x:%02x:%02x" % (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
-
+        oui_prefix = "d0:5f:64:"  
+        mac_suffix = "%02x:%02x:%02x" % (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        return oui_prefix + mac_suffix
+    
+    def construct_host_name(self):
+        # Convert the MAC address to a lowercase string
+        mac_str = self.mac.lower()
+        # Extract the last three octets and join them with dots
+        mac_last_three_octets = ":".join(mac_str.split(":")[3:])
+        # Construct the hostname using the extracted octets
+        return str(f"MyPC-{mac_last_three_octets}")
+    
     def send_dhcp_discover(self):
+        
+        # Define the Parameter Request List
         discover = (
             Ether(src=self.mac, dst="ff:ff:ff:ff:ff:ff") /
             IP(src="0.0.0.0", dst="255.255.255.255") /
             UDP(sport=68, dport=67) /
             BOOTP(chaddr=[mac2str(self.mac)], xid=self.transaction_id) /
-            DHCP(options=[("message-type", "discover"), "end"])
+            DHCP(options=[("message-type", "discover"),
+                           ("client_id", bytes.fromhex(self.client_id)),
+                           ("hostname", self.host_name),
+                           ("vendor_class_id", self.vendor_class_id),
+                           ("param_req_list", self.param_req_list),  # Adding the Parameter Request List
+                           "end"])
         )
         sendp(discover, iface=self.iface, verbose=0)
 
@@ -38,8 +59,13 @@ class DHCPClient:
             UDP(sport=68, dport=67) /
             BOOTP(chaddr=[mac2str(self.mac)], xid=self.transaction_id) /
             DHCP(options=[("message-type", "request"),
+                          ("client_id", bytes.fromhex(self.client_id)),
                           ("requested_addr", requested_ip),
                           ("server_id", server_ip),
+                          ("hostname", self.host_name),
+                          ("fqdn", self.host_name),  # Adding the FQDN option
+                          ("vendor_class_id", self.vendor_class_id),
+                          ("param_req_list", self.param_req_list),  # Adding the Parameter Request List
                           "end"])
         )
         sendp(request, iface=self.iface, verbose=0)
