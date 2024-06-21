@@ -2,7 +2,7 @@ from scapy.all import *
 import random
 import time
 
-NUM_CLIENTS = 16 # Number of clients to simulate
+NUM_CLIENTS = 1# Number of clients to simulate
 
 class DHCPClient:
     def __init__(self, iface):
