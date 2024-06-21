@@ -10,6 +10,7 @@ class DHCPClient:
         self.mac = self.get_random_mac()
         self.transaction_id = random.randint(1, 900000000)
         self.ip_address = None  # Initialize IP address attribute
+        self.host_name = self.construct_host_name()
         self.param_req_list = [1, 3, 6, 15, 31, 33, 43, 44, 46, 47, 119, 121, 249, 252]  # Option codes for Subnet Mask, Router, and Domain Name Server
         self.vendor_class_id = "MSFT 5.0"  # vendor class ID
         hardware_type = '01'
