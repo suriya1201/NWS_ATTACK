@@ -3,7 +3,7 @@ import random
 import threading
 import time
 
-NUM_CLIENTS = 20  # Number of clients to simulate
+NUM_CLIENTS = 20      # Number of clients to simulate
 
 class DHCPClient:
     def __init__(self, iface):
