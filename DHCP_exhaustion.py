@@ -3,33 +3,36 @@ import random
 import threading
 import time
 
-NUM_CLIENTS = 2     # Number of clients to simulate ( depends on subnet size)
-IFACE =  "Ethernet" #define the interface you are sniffing and sending packets out of
+# Define constants
+NUM_CLIENTS = 2     # Number of clients to simulate (depends on subnet size)
+IFACE = "Ethernet"  # Define the interface you are sniffing and sending packets out of
 
 class DHCPClient:
     def __init__(self, iface):
         self.iface = iface
-        self.mac = self.get_random_mac()
-        self.transaction_id = random.randint(1, 900000000)
-        self.ip_address = None
-        self.host_name = self.construct_host_name()
+        self.mac = self.get_random_mac()  # Generate a random MAC address
+        self.transaction_id = random.randint(1, 900000000)  # Random transaction ID for DHCP
+        self.ip_address = None  # Will store the IP address assigned by DHCP
+        self.host_name = self.construct_host_name()  # Construct host name based on MAC
         self.param_req_list = [1, 3, 6, 15, 31, 33, 43, 44, 46, 47, 119, 121, 249, 252]
         self.vendor_class_id = "MSFT 5.0"
         hardware_type = '01'
-        self.client_id = hardware_type + self.mac.replace(':', '')
+        self.client_id = hardware_type + self.mac.replace(':', '')  # Client ID for DHCP
 
     def get_random_mac(self):
+        """Generate a random MAC address."""
         oui_prefix = "d0:5f:64:"
         mac_suffix = "%02x:%02x:%02x" % (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
         return oui_prefix + mac_suffix
-    
+
     def construct_host_name(self):
+        """Construct the host name based on the last three octets of the MAC address."""
         mac_str = self.mac.lower()
         mac_last_three_octets = ":".join(mac_str.split(":")[3:])
         return f"MyPC-{mac_last_three_octets}"
-    
+
     def send_dhcp_discover(self):
-        # Create the DHCP Discover packet
+        """Send a DHCP Discover packet to find available DHCP servers."""
         discover = (
             Ether(src=self.mac, dst="ff:ff:ff:ff:ff:ff") /
             IP(src="0.0.0.0", dst="255.255.255.255") /
@@ -45,6 +48,7 @@ class DHCPClient:
         sendp(discover, iface=self.iface, verbose=0)
 
     def handle_dhcp_offer(self, pkt):
+        """Handle a DHCP Offer received from a server."""
         if DHCP in pkt and pkt[DHCP].options[0][1] == 2:  # If it's a DHCP Offer
             offered_ip = pkt[BOOTP].yiaddr
             server_ip = pkt[IP].src
@@ -52,7 +56,7 @@ class DHCPClient:
             self.send_dhcp_request(offered_ip, server_ip)
 
     def send_dhcp_request(self, requested_ip, server_ip):
-        # Create the DHCP Request packet
+        """Send a DHCP Request packet to claim the offered IP address."""
         request = (
             Ether(src=self.mac, dst="ff:ff:ff:ff:ff:ff") /
             IP(src="0.0.0.0", dst="255.255.255.255") /
@@ -70,6 +74,7 @@ class DHCPClient:
         sendp(request, iface=self.iface, verbose=0)
 
     def start(self):
+        """Start the DHCP process by sending a DHCP Discover packet."""
         self.send_dhcp_discover()
 
 # Global list to track exhausted IP addresses
@@ -81,6 +86,7 @@ clients_by_xid = {}
 clients_by_xid_lock = threading.Lock()
 
 def handle_packet(pkt):
+    """Handle incoming packets, specifically looking for DHCP Offers."""
     if DHCP in pkt and pkt[DHCP].options[0][1] == 2:  # If it's a DHCP Offer
         xid = pkt[BOOTP].xid
         with clients_by_xid_lock:
@@ -91,6 +97,7 @@ def handle_packet(pkt):
                 exhausted_ips.append(client.ip_address)
 
 def start_clients(num_clients, iface):
+    """Start a specified number of DHCP clients."""
     for _ in range(num_clients):
         client = DHCPClient(iface)
         with clients_by_xid_lock:
