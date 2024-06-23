@@ -3,7 +3,8 @@ import random
 import threading
 import time
 
-NUM_CLIENTS = 20      # Number of clients to simulate
+NUM_CLIENTS = 2     # Number of clients to simulate ( depends on subnet size)
+IFACE =  "Ethernet" #define the interface you are sniffing and sending packets out of
 
 class DHCPClient:
     def __init__(self, iface):
@@ -98,11 +99,10 @@ def start_clients(num_clients, iface):
         time.sleep(0.3)  # Slight delay to avoid flooding
 
 if __name__ == "__main__":
-    iface = "Ethernet"
-    sniff_thread = threading.Thread(target=sniff, kwargs={"filter": "udp and (port 67 or 68)", "prn": handle_packet, "store": 0, "iface": iface})
+    sniff_thread = threading.Thread(target=sniff, kwargs={"filter": "udp and (port 67 or 68)", "prn": handle_packet, "store": 0, "iface": IFACE})
     sniff_thread.start()
 
-    start_clients(NUM_CLIENTS, iface)
+    start_clients(NUM_CLIENTS, IFACE)
 
     sniff_thread.join()
     print("Exhausted IP Addresses:", exhausted_ips)
